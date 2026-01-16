@@ -1,21 +1,13 @@
 import numpy as np
 import librosa
 
-# ----------------------------------------------------------
-# 1. Detección de segmentos con voz (silencios excluidos)
-# ----------------------------------------------------------
+# 1. Detecció de segments de veu (es retornen intèrvals d'inici i final)
 
 def detect_speech_segments(audio, sr, top_db=30):
-    """
-    Devuelve intervalos [start, end] donde hay voz detectada.
-    """
     intervals = librosa.effects.split(audio, top_db=top_db)
     return intervals
 
-
-# ----------------------------------------------------------
-# 2. Extracción de MFCC + deltas + delta-deltas
-# ----------------------------------------------------------
+# 2. Extracció d'MFCC i les seves derivades
 
 def extract_mfcc_with_deltas(
     audio,
@@ -25,24 +17,19 @@ def extract_mfcc_with_deltas(
     n_fft=None,
     hop_length=None
 ):
-    """
-    Extrae MFCC + delta + delta2 normalizados y ajustados a un número fijo de frames.
-    Devuelve matriz: (3*n_mfcc, target_frames)
-    """
 
-    # Parámetros por defecto (25 ms ventana, 10 ms salto)
+    # Paràmetres per defecte: 25 ms i hop length de 10 ms.
     if n_fft is None:
         n_fft = int(0.025 * sr)
     if hop_length is None:
         hop_length = int(0.010 * sr)
 
-    # Librosa da error si el audio es demasiado corto
+    # Evitar errors de Librosa si l'àudio és massa curt
     min_len = n_fft * 2
     if len(audio) < min_len:
         pad = min_len - len(audio)
         audio = np.pad(audio, (0, pad), mode="constant")
 
-    # -------- Extraer MFCC base --------
     mfcc = librosa.feature.mfcc(
         y=audio,
         sr=sr,
@@ -53,21 +40,21 @@ def extract_mfcc_with_deltas(
 
     n_frames = mfcc.shape[1]
 
-    # Librosa requiere >= 3 frames para calcular deltas
+    # Assegurar-se que existeixen 3 o més frames per poder calcular les derivades amb Librosa
     if n_frames < 3:
         mfcc = np.tile(mfcc, (1, int(np.ceil(3 / n_frames))))
         mfcc = mfcc[:, :3]
 
-    # -------- Calcular deltas --------
+    # Càlcul de les derivades
     width = min(9, mfcc.shape[1])  # nunca más ancho que el número de frames
 
     delta = librosa.feature.delta(mfcc, order=1, width=width)
     delta2 = librosa.feature.delta(mfcc, order=2, width=width)
 
-    # Concatenar MFCC + delta + delta2 → (3*n_mfcc, n_frames)
+    # Concatenació de derivades
     feat = np.vstack([mfcc, delta, delta2])
 
-    # -------- Ajustar número de frames --------
+    # Ajustar nombre de frames
     n_feat_rows, n_frames = feat.shape
 
     if n_frames < target_frames:
@@ -77,12 +64,12 @@ def extract_mfcc_with_deltas(
     elif n_frames > target_frames:
         feat = feat[:, :target_frames]
 
-    # -------- Normalización --------
+    # Normalització
     feat = (feat - np.mean(feat)) / (np.std(feat) + 1e-6)
 
-    # Verificación
     expected_shape = (3 * n_mfcc, target_frames)
     assert feat.shape == expected_shape, \
         f"Forma inesperada: {feat.shape} (esperado {expected_shape})"
 
     return feat
+
