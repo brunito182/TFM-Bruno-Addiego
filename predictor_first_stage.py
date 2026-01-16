@@ -12,15 +12,15 @@ def predictor_first_stage(
         target_frames=39,
         top_db=10):
 
-    # 1) Preprocesar audio grabado
+    # 1) Preprocessar àudio
     audio, sr = preprocessat(audio_array, sr, target_sr)
-    print(f"Audio preprocesado: sr={sr}, muestras={len(audio)}")
+    print(f"Audio preprocessat: sr={sr}, muestras={len(audio)}")
 
-    # 2) Cargar modelo TFLite
+    # 2) Carregar model en tflite
     model_type, model_obj = load_classifier(model_path_tflite=model_tflite_path)
     print("Modelo cargado:", model_type)
 
-    # 3) Detectar segmentos
+    # 3) Detectar segments
     segments = detect_speech_segments(audio, sr, top_db=top_db)
     print("Segmentos detectados:", len(segments))
 
@@ -39,3 +39,4 @@ def predictor_first_stage(
     }
 
     return palabra, fonema_anterior, meta, segments
+
