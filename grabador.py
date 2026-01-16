@@ -5,11 +5,11 @@ import time
 
 p = pyaudio.PyAudio()
 
-# --- Estado del grabador ---
+# Estat inicial del gravador:
 stream = None
 frames = []
 is_recording = False
-lock = threading.Lock()      # <── Protege frames y flags
+lock = threading.Lock()      # Evita que el resultat desaparegui quan s'actualitza l'historial
 recording_thread = None
 
 
@@ -18,9 +18,9 @@ def start_recording(sr=16000):
 
     with lock:
         if is_recording:
-            return  # ya está grabando
+            return
 
-        frames = []  # limpiar buffer
+        frames = []  # Netejar buffer
         is_recording = True
 
     stream = p.open(
@@ -30,8 +30,6 @@ def start_recording(sr=16000):
         input=True,
         frames_per_buffer=1024
     )
-
-    print("🎤 Grabación iniciada")
 
     def record_thread():
         global frames, is_recording
@@ -56,7 +54,6 @@ def stop_recording(sr=16000):
             return None, None
         is_recording = False
 
-    # Esperar a que el hilo acabe SIN daemon=True
     if recording_thread is not None:
         recording_thread.join(timeout=0.5)
 
@@ -69,19 +66,17 @@ def stop_recording(sr=16000):
     except:
         pass
 
-    print("🛑 Grabación detenida")
-
-    # Bloquear frames antes de leerlos
+    # Bloquejar frames abans de llegir-los
     with lock:
         audio_bytes = b"".join(frames)
         frames = []  # evitar reuso accidental
 
     audio_np = np.frombuffer(audio_bytes, dtype=np.int16).astype(float)
 
-    print("Tamaño del audio grabado:", len(audio_np))
+    print("Mida de l'àudio grvat:", len(audio_np))
 
     if len(audio_np) < 500:
-        print("⚠ AUDIO DEMASIADO CORTO — ignorado")
+        print("Àudio massa curt!")
         return None, None
 
     return audio_np, sr
