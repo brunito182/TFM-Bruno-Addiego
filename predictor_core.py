@@ -3,7 +3,7 @@ import time
 from tflite_runtime.interpreter import Interpreter
 from feature_extraction import extract_mfcc_with_deltas
 
-# Cargar los fonemas
+# Carregar fonemes
 with open("fonemas.txt", "r", encoding="utf-8") as f:
     FONEMAS = [line.strip() for line in f if line.strip()]
 
@@ -69,7 +69,7 @@ def predictor_core(audio, sr, segments, model, target_frames=39):
             fonemas_detectados.append(fonema)
             n_windows += 1
 
-    # ---------- POST ----------
+    # Post-processat
     if not fonemas_detectados:
         palabra = "Desconocido"
     else:
@@ -89,3 +89,4 @@ def predictor_core(audio, sr, segments, model, target_frames=39):
     )
 
     return palabra
+
