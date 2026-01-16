@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Predicció</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: #f4f4f7;
+            display: flex;
+            justify-content: center;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        #contenedor {
+            display: flex;
+            gap: 40px;
+        }
+
+        #panel-izq, #panel-der {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0px 6px 18px rgba(0,0,0,0.08);
+        }
+
+        #panel-izq {
+            flex: 1;
+            text-align: center;
+        }
+
+        #panel-der {
+            width: 260px;
+        }
+
+        /* Botones */
+        .btn {
+            padding: 14px 28px;
+            margin: 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        #btnStart {
+            background: #007bff;
+            color: white;
+        }
+
+        #btnStop {
+            background: #dc3545;
+            color: white;
+        }
+
+        /* Indicador grabando */
+        #grabandoIndicator {
+            margin-top: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #c40000;
+        }
+
+        #grabandoIndicator .dot {
+            width: 14px;
+            height: 14px;
+            background: #ff0000;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+
+        /* Resultado */
+        #resultadoBox {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f0f4ff;
+            border: 1px solid #d6e0ff;
+        }
+
+        #resultadoLabel {
+            font-size: 18px;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        #resultado {
+            font-size: 36px;
+            font-weight: bold;
+            color: #003a8f;
+        }
+
+        /* Historial */
+        #historial {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .hist-item {
+            padding: 6px 0;
+            font-size: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+
+    <h1>Sistema de predicció de paraules</h1>
+
+    <div id="contenedor">
+
+        <!-- Panel izquierdo -->
+        <div id="panel-izq">
+            <button id="btnStart" class="btn">🎙️ Gravar</button>
+            <button id="btnStop" class="btn">⏹️ Finalitzar i predir</button>
+
+            <div id="grabandoIndicator">
+                <div class="dot"></div> Gravant...
+            </div>
+
+            <div id="resultadoBox">
+                <div id="resultadoLabel">Resultat de la predicció:</div>
+                <div id="resultado">--</div>
+            </div>
+        </div>
+
+        <!-- Panel derecho -->
+        <div id="panel-der">
+            <h3>Prediccions anteriors</h3>
+            <div id="historial"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    let historial = [];
+
+    document.getElementById("btnStart").onclick = async () => {
+        document.getElementById("resultado").textContent = "--";
+        document.getElementById("grabandoIndicator").style.display = "flex";
+        await fetch("/start");
+    };
+
+    document.getElementById("btnStop").onclick = async () => {
+        document.getElementById("grabandoIndicator").style.display = "none";
+
+        const response = await fetch("/stop_and_predict");
+        const data = await response.json();
+
+        if (data.prediccion) {
+            document.getElementById("resultado").textContent = data.prediccion;
+
+            historial.unshift(data.prediccion);
+            historial = historial.slice(0, 5);
+            refrescarHistorial();
+        }
+    };
+
+    function refrescarHistorial() {
+        const div = document.getElementById("historial");
+        div.innerHTML = "";
+
+        historial.forEach(p => {
+            const item = document.createElement("div");
+            item.className = "hist-item";
+            item.textContent = "• " + p;
+            div.appendChild(item);
+        });
+    }
+</script>
+
+</body>
+</html>
