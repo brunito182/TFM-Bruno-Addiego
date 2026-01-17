@@ -1,7 +1,7 @@
 import numpy as np
 import librosa
 
-def preprocessat(audio_array, sr, target_sr=44100):
+def preprocessat(audio_array, sr, target_sr=16000):
     # 1. Normalitzar a float32 (-1..1)
     audio = audio_array.astype(np.float32)
     audio /= np.max(np.abs(audio) + 1e-6)
@@ -15,5 +15,6 @@ def preprocessat(audio_array, sr, target_sr=44100):
     audio, _ = librosa.effects.trim(audio, top_db=30)
 
     return audio, sr
+
 
 
