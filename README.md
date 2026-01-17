@@ -8,4 +8,4 @@ Recull de codi, funcions i sub-funcions pel predictor de paraules per pacients n
 - PyAudio
 - Flask
 
-El sistema requereix d'un micròfon extern connectat per a la gravació d'àudio.
+L'ús del sistema requereix d'un micròfon extern connectat per a la gravació d'àudio.
